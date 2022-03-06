@@ -1,15 +1,8 @@
 """Multihot dataset."""
 
-import random
-import tensorflow as tf
-import tensorflow_datasets as tfds
-import json
 import numpy as np
 import pathlib
-import re
-import cv2
-from sklearn.preprocessing import MultiLabelBinarizer
-from PIL import Image
+import tensorflow_datasets as tfds
 
 DIM = (300,300)
 SHAPE = (300,300,3)
@@ -41,12 +34,9 @@ class Multihot(tfds.core.GeneratorBasedBuilder):
 
   def labels(self):
     return sorted([
-      'small-green-apple', 
-      'large-red-apple', 
-      'small-green-banana', 
-      'large-yellow-banana', 
-      'small-yellow-grapes', 
-      'large-green-grapes'
+        'small','large',
+        'red','yellow','green',
+        'apple','banana','grapes'
     ])
   
   def _info(self) -> tfds.core.DatasetInfo:
@@ -57,8 +47,8 @@ class Multihot(tfds.core.GeneratorBasedBuilder):
         description=_DESCRIPTION,
         features=tfds.features.FeaturesDict({
             'image': tfds.features.Image(shape=SHAPE),
-            #TODO revise this to multihot
-            'label': tfds.features.ClassLabel(names=self.labels()),
+            'label': tfds.features.FeatureConnector.from_json(
+                    {'type': 'tensorflow_datasets.core.features.tensor_feature.Tensor', 'content': {'shape': [len(self.labels())], 'dtype': 'bool'} })
         }),
         supervised_keys=('image','label'),  # Set to `None` to disable
         homepage='https://no.no/',
@@ -76,15 +66,25 @@ class Multihot(tfds.core.GeneratorBasedBuilder):
   def _generate_examples(self, path):
     """Yields examples."""
 
+    ii = 0
+    mh = dict()
+
+    dd = ""
     for lab in self.labels():
-      files = list(path.glob("images/"+lab+"/*.jpg"))
-      #TODO encode a multihot
-      #hot = lab.split('-')
-      #attr = {'label':dict()}
-      #for h in hot:
-      #  attr['label'][h] = True
-      for f in files:
-        attr = dict()
-        attr['image'] = f
-        attr['label'] = lab
-        yield str(f), attr
+      for token in lab.split('-'):
+        dd += token + " "
+        if token not in mh:
+          mh[token] = ii
+          ii += 1
+    #vectorizer = TextVectorization(output_mode="binary")
+    #vectorizer.adapt(np.array([[dd]]))
+    #integer_data = vectorizer([[dd]])
+    #print(integer_data)
+
+    for f in list(path.glob("images/*/*.jpg")):
+      parts = str(f).split('/')
+      lab = parts[1]
+      mhot = np.zeros(len(self.labels()), dtype=np.bool)
+      for h in lab.split('-'):
+        mhot[mh[h]] = True
+      yield str(f), {'label':mhot,'image':f}
