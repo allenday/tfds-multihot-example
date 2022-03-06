@@ -16,7 +16,7 @@ SHAPE = (300,300,3)
 
 # TODO(shot): Markdown description  that will appear on the catalog page.
 _DESCRIPTION = """
-Positions
+Multihot
 """
 
 # TODO(shot): BibTeX citation
@@ -24,7 +24,7 @@ _CITATION = """
 none
 """
 
-class Position(tfds.core.GeneratorBasedBuilder):
+class Multihot(tfds.core.GeneratorBasedBuilder):
   """DatasetBuilder for Multihot dataset."""
   VERSION = tfds.core.Version('1.0.0')
 
