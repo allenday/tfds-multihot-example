@@ -77,7 +77,6 @@ class Position(tfds.core.GeneratorBasedBuilder):
     """Yields examples."""
 
     for lab in self.labels():
-      print("*****"+lab)
       files = list(path.glob("images/"+lab+"/*.jpg"))
       #TODO encode a multihot
       #hot = lab.split('-')
@@ -86,5 +85,6 @@ class Position(tfds.core.GeneratorBasedBuilder):
       #  attr['label'][h] = True
       for f in files:
         attr = dict()
+        attr['image'] = f
         attr['label'] = lab
         yield str(f), attr
